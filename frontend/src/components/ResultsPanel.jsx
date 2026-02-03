@@ -61,10 +61,10 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
               {comparisonMode && result.original ? (
                 <div className="grid grid-cols-2 gap-px bg-white/10">
                   <div className="aspect-square relative">
-                    {result.type === 'video' ? (
-                      <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[8px] text-gray-500">ORIGINAL</div>
-                    ) : (
+                    {result.original ? (
                       <img src={result.original} alt="Original" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-[8px] text-gray-500">ORIGINAL</div>
                     )}
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">Original</div>
                   </div>

@@ -36,11 +36,18 @@ function App() {
     if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
 
-  const saveToHistory = (newResult) => {
-    const updatedHistory = [newResult, ...history].slice(0, 20);
-    setHistory(updatedHistory);
-    localStorage.setItem('ai_studio_history', JSON.stringify(updatedHistory));
+  const saveToHistory = (newResults) => {
+    setHistory(prev => {
+      const updated = [...newResults, ...prev].slice(0, 20);
+      return updated;
+    });
   };
+
+  useEffect(() => {
+    if (history.length > 0) {
+      localStorage.setItem('ai_studio_history', JSON.stringify(history));
+    }
+  }, [history]);
 
   const simulateProgress = () => {
     setProgress(0);
@@ -62,7 +69,7 @@ function App() {
 
     try {
       const formData = new FormData();
-      const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const apiBase = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : '');
       let endpoint = '';
 
       if (mode === 'video') {
@@ -102,7 +109,7 @@ function App() {
             }));
 
         setResults(newResults);
-        newResults.forEach(res => saveToHistory(res));
+        saveToHistory(newResults);
         setLoading(false);
         setProgress(0);
         if (window.innerWidth < 1280) setShowResultsMobile(true);

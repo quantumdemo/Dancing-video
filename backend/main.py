@@ -5,6 +5,7 @@ from typing import List, Optional
 import time
 import asyncio
 import uuid
+from mangum import Mangum
 
 app = FastAPI(title="AI Media Studio API")
 
@@ -90,6 +91,8 @@ async def avatar_creation(
         message=f"Avatar creation in '{style}' style completed",
         variations=variations
     )
+
+handler = Mangum(app)
 
 if __name__ == "__main__":
     import uvicorn
