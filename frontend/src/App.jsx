@@ -64,7 +64,7 @@ function App() {
   };
 
   const handleGenerate = async () => {
-    if ((mode === 'video' && (!videoImage || !videoFile)) || (mode === 'avatar' && !avatarImage)) {
+    if ((mode === 'video' && (!videoImages.length || !videoFile)) || (mode === 'avatar' && !avatarImage)) {
       alert('Please upload all required media before generating.');
       return;
     }
@@ -136,7 +136,8 @@ function App() {
       saveToHistory(newResults);
       setLoading(false);
       setProgress(0);
-      if (window.innerWidth < 1280) setShowResultsMobile(true);
+      // Always show results panel on smaller screens, and ensure it's "notified" on desktop
+      setShowResultsMobile(true);
     }, waitTime);
   };
 

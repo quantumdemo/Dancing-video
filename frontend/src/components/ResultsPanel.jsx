@@ -84,7 +84,19 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                   </div>
                   <div className="aspect-square relative overflow-hidden">
                     {result.type === 'video' ? (
-                      <video src={result.url} className="w-full h-full object-cover" autoPlay loop muted style={{ filter: result.filter }} />
+                      <div className="w-full h-full relative">
+                        <video src={result.url} className="w-full h-full object-cover" autoPlay loop muted style={{ filter: result.filter }} />
+                        {result.original && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                             <img
+                                src={result.original}
+                                className="w-full h-full object-cover opacity-40 mix-blend-screen"
+                                alt="Mimick Overlay"
+                                style={{ filter: 'grayscale(1) brightness(1.5)' }}
+                             />
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
                     )}
@@ -97,7 +109,18 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
               ) : (
                 <div className="aspect-square relative overflow-hidden">
                   {result.type === 'video' ? (
-                    <video src={result.url} className="w-full h-full object-cover" controls style={{ filter: result.filter }} />
+                    <div className="w-full h-full relative">
+                      <video src={result.url} className="w-full h-full object-cover" controls style={{ filter: result.filter }} />
+                      {result.original && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <img
+                              src={result.original}
+                              className="w-full h-full object-cover opacity-30 mix-blend-overlay"
+                              alt="Mimick Overlay"
+                            />
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
                   )}
