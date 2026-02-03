@@ -19,7 +19,8 @@ export const simulateAIProcessing = (mode, data) => {
       type: 'video',
       original: videoImagesPreviews[0] || null,
       filter: dynamicFilter,
-      label: 'Style Transfer'
+      label: 'Motion Sync',
+      isMotionMap: true
     }];
   } else {
     const { avatarImagePreview, avatarStyle, avatarOptions } = data;

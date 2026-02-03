@@ -24,6 +24,28 @@ function App() {
   const [videoFilePreview, setVideoFilePreview] = useState(null);
   const [videoPrompt, setVideoPrompt] = useState('');
 
+  const handleVideoImagesChange = (files) => {
+    setVideoImages(files);
+    if (files && files.length > 0) {
+      const urls = files.map(f => URL.createObjectURL(f));
+      setVideoImagesPreviews(urls);
+    } else {
+      setVideoImagesPreviews([]);
+    }
+  };
+
+  const handleVideoFileChange = (file) => {
+    setVideoFile(file);
+    if (file) setVideoFilePreview(URL.createObjectURL(file));
+    else setVideoFilePreview(null);
+  };
+
+  const handleAvatarImageChange = (file) => {
+    setAvatarImage(file);
+    if (file) setAvatarImagePreview(URL.createObjectURL(file));
+    else setAvatarImagePreview(null);
+  };
+
   const [avatarImage, setAvatarImage] = useState(null);
   const [avatarImagePreview, setAvatarImagePreview] = useState(null);
   const [avatarStyle, setAvatarStyle] = useState('cyberpunk');
@@ -133,22 +155,20 @@ function App() {
                     <div className="space-y-8">
                       <div className="flex flex-col md:flex-row gap-6">
                         <UploadArea
-                          label="Reference Images"
+                          label="Identity Source (Image)"
                           type="image"
                           file={videoImages}
                           preview={videoImagesPreviews[0]}
-                          setFile={setVideoImages}
-                          setPreview={(p) => setVideoImagesPreviews(prev => [p])}
+                          setFile={handleVideoImagesChange}
                           accept="image/*"
                           multiple={true}
                         />
                         <UploadArea
-                          label="Source Video"
+                          label="Motion Source (Video)"
                           type="video"
                           file={videoFile}
                           preview={videoFilePreview}
-                          setFile={setVideoFile}
-                          setPreview={setVideoFilePreview}
+                          setFile={handleVideoFileChange}
                           accept="video/*"
                         />
                       </div>
@@ -170,8 +190,7 @@ function App() {
                             type="image"
                             file={avatarImage}
                             preview={avatarImagePreview}
-                            setFile={setAvatarImage}
-                            setPreview={setAvatarImagePreview}
+                            setFile={handleAvatarImageChange}
                             accept="image/*"
                           />
                         </div>
