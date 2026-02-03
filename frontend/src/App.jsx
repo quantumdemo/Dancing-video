@@ -17,7 +17,7 @@ function App() {
   const [showResultsMobile, setShowResultsMobile] = useState(false);
 
   // Form states
-  const [videoImage, setVideoImage] = useState(null);
+  const [videoImages, setVideoImages] = useState([]); // Support multiple
   const [videoFile, setVideoFile] = useState(null);
   const [videoPrompt, setVideoPrompt] = useState('');
 
@@ -83,27 +83,53 @@ function App() {
       let newResults = [];
 
       if (mode === 'video') {
+        const videoUrl = URL.createObjectURL(videoFile);
+        let dynamicFilter = 'contrast(1.2) saturate(1.4)';
+
+        const p = videoPrompt.toLowerCase();
+        if (p.includes('neon') || p.includes('cyber')) dynamicFilter += ' hue-rotate(280deg) brightness(1.2)';
+        else if (p.includes('old') || p.includes('retro')) dynamicFilter += ' sepia(0.5) contrast(0.8)';
+        else if (p.includes('dark')) dynamicFilter += ' brightness(0.7) contrast(1.5)';
+        else dynamicFilter += ' hue-rotate(200deg)';
+
         newResults = [{
           id: requestId,
-          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+          url: videoUrl,
           type: 'video',
-          original: URL.createObjectURL(videoImage)
+          original: videoImages.length > 0 ? URL.createObjectURL(videoImages[0]) : null,
+          filter: dynamicFilter,
+          label: 'Style Transfer'
         }];
       } else {
-        const variations = [
-          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
-          "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400",
-          "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=400",
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400"
-        ];
+        const imageUrl = URL.createObjectURL(avatarImage);
+        const styleMap = {
+          'anime': { filter: 'contrast(1.1) saturate(1.3) brightness(1.1) sepia(0.1)', label: 'Anime' },
+          '3d-pixar': { filter: 'saturate(1.8) brightness(1.1) blur(0.4px)', label: '3D Pixar' },
+          'cyberpunk': { filter: 'hue-rotate(280deg) contrast(1.2) saturate(1.5) brightness(1.1)', label: 'Cyberpunk' },
+          'watercolor': { filter: 'opacity(0.8) contrast(0.8) sepia(0.3) saturate(1.2) blur(0.2px)', label: 'Watercolor' },
+          'professional-logo': { filter: 'contrast(1.8) brightness(1.2) grayscale(1)', label: 'Minimalist Logo' },
+          'gaming-character': { filter: 'contrast(1.5) brightness(0.9) saturate(1.5) hue-rotate(10deg)', label: 'Gaming' }
+        };
 
+        const selectedStyleData = styleMap[avatarStyle] || styleMap['cyberpunk'];
         const count = avatarOptions.batch ? 4 : 1;
-        newResults = variations.slice(0, count).map((v, i) => ({
-          id: `${requestId}-${i}`,
-          url: v,
-          type: 'avatar',
-          original: URL.createObjectURL(avatarImage)
-        }));
+
+        newResults = Array.from({ length: count }).map((_, i) => {
+          // Add some variation for batch
+          const hueShift = i * 15;
+          const currentFilter = i === 0
+            ? selectedStyleData.filter
+            : `${selectedStyleData.filter} hue-rotate(${hueShift}deg)`;
+
+          return {
+            id: `${requestId}-${i}`,
+            url: imageUrl,
+            type: 'avatar',
+            original: imageUrl,
+            filter: currentFilter,
+            label: `${selectedStyleData.label}${i > 0 ? ` Var ${i+1}` : ''}`
+          };
+        });
       }
 
       setResults(newResults);
@@ -145,11 +171,12 @@ function App() {
                     <div className="space-y-8">
                       <div className="flex flex-col md:flex-row gap-6">
                         <UploadArea
-                          label="Reference Image"
+                          label="Reference Images"
                           type="image"
-                          file={videoImage}
-                          setFile={setVideoImage}
+                          file={videoImages[0]} // Show first for preview
+                          setFile={(f) => setVideoImages(prev => Array.isArray(f) ? f : [f])}
                           accept="image/*"
+                          multiple={true}
                         />
                         <UploadArea
                           label="Source Video"
@@ -265,11 +292,11 @@ function App() {
                   {history.length > 0 ? (
                     history.map((item, idx) => (
                       <div key={idx} className="bg-dark-card border border-white/5 rounded-2xl overflow-hidden group">
-                        <div className="aspect-square relative">
+                        <div className="aspect-square relative overflow-hidden">
                           {item.type === 'video' ? (
-                            <video src={item.url} className="w-full h-full object-cover" />
+                            <video src={item.url} className="w-full h-full object-cover" style={{ filter: item.filter }} />
                           ) : (
-                            <img src={item.url} alt="Generated" className="w-full h-full object-cover" />
+                            <img src={item.url} alt="Generated" className="w-full h-full object-cover" style={{ filter: item.filter }} />
                           )}
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                              <button className="p-3 bg-primary-blue rounded-full text-white hover:scale-110 transition-transform">

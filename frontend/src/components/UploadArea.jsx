@@ -1,19 +1,24 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 
-const UploadArea = ({ label, type, file, setFile, accept }) => {
+const UploadArea = ({ label, type, file, setFile, accept, multiple }) => {
   const [preview, setPreview] = useState(null);
   const inputRef = useRef(null);
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      if (multiple) {
+        setFile(files);
+      } else {
+        setFile(files[0]);
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
-      reader.readAsDataURL(selectedFile);
+      reader.readAsDataURL(files[0]);
     }
   };
 
@@ -40,6 +45,7 @@ const UploadArea = ({ label, type, file, setFile, accept }) => {
           className="hidden"
           onChange={handleFileChange}
           accept={accept}
+          multiple={multiple}
         />
 
         {file ? (

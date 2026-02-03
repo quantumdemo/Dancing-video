@@ -29,9 +29,17 @@ npm run dev
 ```
 The app will be available at `http://localhost:5173`.
 
+## How it Works (Style Simulation)
+
+This application is a **Visual Prototype**. It simulates complex AI video style replication and avatar creation using client-side processing (CSS Filters and Canvas).
+
+- **Video Style Replication**: Analyzes the uploaded video and applies dynamic CSS style filters based on your prompt (e.g., "cyberpunk", "retro", "dark").
+- **Avatar Creator**: Generates variations of your uploaded portrait by applying curated filter stacks corresponding to styles like Anime, 3D Pixar, and Watercolor.
+- **Why Simulation?**: High-quality AI video generation requires multi-gigabyte models and high-end GPUs. This prototype provides a high-performance, cost-free demonstration of the **User Experience (UX)** and **Interface Logic** without requiring expensive cloud infrastructure.
+
 ## Deployment (Free)
 
-This project is pre-configured for **Netlify** as a pure frontend application with simulated AI processing.
+This project is pre-configured for **Netlify** as a pure frontend application.
 
 1. **Push to GitHub**: Upload your code to a GitHub repository.
 2. **Connect to Netlify**:

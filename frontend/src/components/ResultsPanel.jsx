@@ -40,8 +40,22 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="aspect-square rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5">
-               <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Generating...</span>
+
+            <div className="bg-black/40 rounded-xl p-4 border border-white/5 font-mono text-[9px] text-gray-400 space-y-1">
+               <div className="text-green-500 flex justify-between">
+                 <span>[SYSTEM] Init pipeline...</span>
+                 <span>OK</span>
+               </div>
+               {progress > 20 && <div>[AI] Analyzing keyframes...</div>}
+               {progress > 40 && <div>[MODEL] Extracting style features...</div>}
+               {progress > 60 && <div>[GEN] Regenerating latent space...</div>}
+               {progress > 80 && <div>[POST] Applying color consistency...</div>}
+               <div className="animate-pulse">_</div>
+            </div>
+
+            <div className="aspect-square rounded-2xl bg-white/5 animate-pulse flex items-center justify-center border border-white/5 relative overflow-hidden">
+               <div className="absolute inset-0 bg-gradient-to-t from-primary-blue/20 to-transparent" />
+               <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold z-10">Neural Rendering...</span>
             </div>
           </div>
         )}
@@ -68,21 +82,27 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                     )}
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">Original</div>
                   </div>
-                  <div className="aspect-square relative">
+                  <div className="aspect-square relative overflow-hidden">
                     {result.type === 'video' ? (
-                      <video src={result.url} className="w-full h-full object-cover" autoPlay loop muted />
+                      <video src={result.url} className="w-full h-full object-cover" autoPlay loop muted style={{ filter: result.filter }} />
                     ) : (
-                      <img src={result.url} alt="Result" className="w-full h-full object-cover" />
+                      <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
                     )}
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-primary-blue/80 rounded text-[8px] font-bold uppercase tracking-widest">Result</div>
+                    {result.label && (
+                      <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">{result.label}</div>
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="aspect-square relative">
+                <div className="aspect-square relative overflow-hidden">
                   {result.type === 'video' ? (
-                    <video src={result.url} className="w-full h-full object-cover" controls />
+                    <video src={result.url} className="w-full h-full object-cover" controls style={{ filter: result.filter }} />
                   ) : (
-                    <img src={result.url} alt="Result" className="w-full h-full object-cover" />
+                    <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
+                  )}
+                  {result.label && (
+                    <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">{result.label}</div>
                   )}
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="p-1.5 bg-black/60 rounded-lg text-white hover:bg-primary-blue transition-colors">
