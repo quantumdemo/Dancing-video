@@ -1,8 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Video as VideoIcon } from 'lucide-react';
 
-const UploadArea = ({ label, type, file, setFile, accept, multiple }) => {
-  const [preview, setPreview] = useState(null);
+const UploadArea = ({ label, type, file, preview, setFile, setPreview, accept, multiple }) => {
   const inputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -10,20 +9,25 @@ const UploadArea = ({ label, type, file, setFile, accept, multiple }) => {
     if (files.length > 0) {
       if (multiple) {
         setFile(files);
+        // For multiple, we just preview the first one for simplicity in this prototype
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(files[0]);
       } else {
         setFile(files[0]);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(files[0]);
       }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(files[0]);
     }
   };
 
   const clearFile = () => {
-    setFile(null);
+    setFile(multiple ? [] : null);
     setPreview(null);
     if (inputRef.current) inputRef.current.value = '';
   };
@@ -32,9 +36,9 @@ const UploadArea = ({ label, type, file, setFile, accept, multiple }) => {
     <div className="flex flex-col gap-2 flex-1">
       <label className="text-sm font-medium text-gray-400">{label}</label>
       <div
-        onClick={() => !file && inputRef.current?.click()}
+        onClick={() => !file || (multiple && file.length === 0) ? inputRef.current?.click() : null}
         className={`relative h-48 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden ${
-          file
+          (file && (!multiple || file.length > 0))
             ? 'border-primary-blue bg-primary-blue/5'
             : 'border-white/10 hover:border-primary-blue/50 bg-white/5 hover:bg-white/10'
         }`}
@@ -48,14 +52,14 @@ const UploadArea = ({ label, type, file, setFile, accept, multiple }) => {
           multiple={multiple}
         />
 
-        {file ? (
+        {(file && (!multiple || file.length > 0)) ? (
           <div className="w-full h-full relative group">
             {type === 'image' ? (
               <img src={preview} alt="preview" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                 <VideoIcon size={40} className="text-primary-blue" />
-                <span className="text-xs text-gray-400 truncate max-w-[80%]">{file.name}</span>
+                <span className="text-xs text-gray-400 truncate max-w-[80%]">{file.name || 'Video uploaded'}</span>
               </div>
             )}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

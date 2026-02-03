@@ -5,7 +5,8 @@ import UploadArea from './components/UploadArea';
 import PromptInput from './components/PromptInput';
 import StyleSelector from './components/StyleSelector';
 import ResultsPanel from './components/ResultsPanel';
-import { Layers, Box, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
+import { simulateAIProcessing } from './utils/aiSimulation';
 
 function App() {
   const [mode, setMode] = useState('video');
@@ -18,10 +19,13 @@ function App() {
 
   // Form states
   const [videoImages, setVideoImages] = useState([]); // Support multiple
+  const [videoImagesPreviews, setVideoImagesPreviews] = useState([]);
   const [videoFile, setVideoFile] = useState(null);
+  const [videoFilePreview, setVideoFilePreview] = useState(null);
   const [videoPrompt, setVideoPrompt] = useState('');
 
   const [avatarImage, setAvatarImage] = useState(null);
+  const [avatarImagePreview, setAvatarImagePreview] = useState(null);
   const [avatarStyle, setAvatarStyle] = useState('cyberpunk');
   const [avatarPrompt, setAvatarPrompt] = useState('');
   const [resolution, setResolution] = useState('1024x1024');
@@ -70,6 +74,7 @@ function App() {
     }
 
     setLoading(true);
+    setShowResultsMobile(true); // Open panel immediately
     const progressInterval = simulateProgress();
 
     // Simulate AI processing time
@@ -79,64 +84,20 @@ function App() {
       clearInterval(progressInterval);
       setProgress(100);
 
-      const requestId = Math.random().toString(36).substring(7);
-      let newResults = [];
-
-      if (mode === 'video') {
-        const videoUrl = URL.createObjectURL(videoFile);
-        let dynamicFilter = 'contrast(1.2) saturate(1.4)';
-
-        const p = videoPrompt.toLowerCase();
-        if (p.includes('neon') || p.includes('cyber')) dynamicFilter += ' hue-rotate(280deg) brightness(1.2)';
-        else if (p.includes('old') || p.includes('retro')) dynamicFilter += ' sepia(0.5) contrast(0.8)';
-        else if (p.includes('dark')) dynamicFilter += ' brightness(0.7) contrast(1.5)';
-        else dynamicFilter += ' hue-rotate(200deg)';
-
-        newResults = [{
-          id: requestId,
-          url: videoUrl,
-          type: 'video',
-          original: videoImages.length > 0 ? URL.createObjectURL(videoImages[0]) : null,
-          filter: dynamicFilter,
-          label: 'Style Transfer'
-        }];
-      } else {
-        const imageUrl = URL.createObjectURL(avatarImage);
-        const styleMap = {
-          'anime': { filter: 'contrast(1.1) saturate(1.3) brightness(1.1) sepia(0.1)', label: 'Anime' },
-          '3d-pixar': { filter: 'saturate(1.8) brightness(1.1) blur(0.4px)', label: '3D Pixar' },
-          'cyberpunk': { filter: 'hue-rotate(280deg) contrast(1.2) saturate(1.5) brightness(1.1)', label: 'Cyberpunk' },
-          'watercolor': { filter: 'opacity(0.8) contrast(0.8) sepia(0.3) saturate(1.2) blur(0.2px)', label: 'Watercolor' },
-          'professional-logo': { filter: 'contrast(1.8) brightness(1.2) grayscale(1)', label: 'Minimalist Logo' },
-          'gaming-character': { filter: 'contrast(1.5) brightness(0.9) saturate(1.5) hue-rotate(10deg)', label: 'Gaming' }
-        };
-
-        const selectedStyleData = styleMap[avatarStyle] || styleMap['cyberpunk'];
-        const count = avatarOptions.batch ? 4 : 1;
-
-        newResults = Array.from({ length: count }).map((_, i) => {
-          // Add some variation for batch
-          const hueShift = i * 15;
-          const currentFilter = i === 0
-            ? selectedStyleData.filter
-            : `${selectedStyleData.filter} hue-rotate(${hueShift}deg)`;
-
-          return {
-            id: `${requestId}-${i}`,
-            url: imageUrl,
-            type: 'avatar',
-            original: imageUrl,
-            filter: currentFilter,
-            label: `${selectedStyleData.label}${i > 0 ? ` Var ${i+1}` : ''}`
-          };
-        });
-      }
+      const newResults = simulateAIProcessing(mode, {
+        videoFile,
+        videoPrompt,
+        videoImagesPreviews,
+        avatarImagePreview,
+        avatarStyle,
+        avatarOptions
+      });
 
       setResults(newResults);
       saveToHistory(newResults);
       setLoading(false);
       setProgress(0);
-      // Always show results panel on smaller screens, and ensure it's "notified" on desktop
+      // Ensure the results are shown
       setShowResultsMobile(true);
     }, waitTime);
   };
@@ -174,8 +135,10 @@ function App() {
                         <UploadArea
                           label="Reference Images"
                           type="image"
-                          file={videoImages[0]} // Show first for preview
-                          setFile={(f) => setVideoImages(prev => Array.isArray(f) ? f : [f])}
+                          file={videoImages}
+                          preview={videoImagesPreviews[0]}
+                          setFile={setVideoImages}
+                          setPreview={(p) => setVideoImagesPreviews(prev => [p])}
                           accept="image/*"
                           multiple={true}
                         />
@@ -183,7 +146,9 @@ function App() {
                           label="Source Video"
                           type="video"
                           file={videoFile}
+                          preview={videoFilePreview}
                           setFile={setVideoFile}
+                          setPreview={setVideoFilePreview}
                           accept="video/*"
                         />
                       </div>
@@ -204,7 +169,9 @@ function App() {
                             label="Portrait Image"
                             type="image"
                             file={avatarImage}
+                            preview={avatarImagePreview}
                             setFile={setAvatarImage}
+                            setPreview={setAvatarImagePreview}
                             accept="image/*"
                           />
                         </div>

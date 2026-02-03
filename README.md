@@ -13,7 +13,6 @@ A single-page web application for AI-powered video style replication and avatar 
 ## Tech Stack
 
 - **Frontend**: React, Vite, Tailwind CSS, Lucide Icons, Framer Motion.
-- **Frontend**: React, Vite, Tailwind CSS, Lucide Icons, Framer Motion.
 - **Deployment**: Netlify (Static Hosting).
 
 ## Local Development

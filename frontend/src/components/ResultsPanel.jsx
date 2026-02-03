@@ -46,10 +46,11 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                  <span>[SYSTEM] Init pipeline...</span>
                  <span>OK</span>
                </div>
-               {progress > 20 && <div>[AI] Analyzing keyframes...</div>}
-               {progress > 40 && <div>[MODEL] Extracting style features...</div>}
-               {progress > 60 && <div>[GEN] Regenerating latent space...</div>}
-               {progress > 80 && <div>[POST] Applying color consistency...</div>}
+               {progress > 15 && <div>[AI] Analyzing skeletal landmarks...</div>}
+               {progress > 30 && <div>[MODEL] Mapping texture to 3D mesh...</div>}
+               {progress > 50 && <div>[GEN] Synthesizing neural motion frames...</div>}
+               {progress > 70 && <div>[POST] Temporal stabilization active...</div>}
+               {progress > 85 && <div>[RENDER] Finalizing high-fidelity output...</div>}
                <div className="animate-pulse">_</div>
             </div>
 
@@ -84,23 +85,56 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                   </div>
                   <div className="aspect-square relative overflow-hidden">
                     {result.type === 'video' ? (
-                      <div className="w-full h-full relative">
-                        <video src={result.url} className="w-full h-full object-cover" autoPlay loop muted style={{ filter: result.filter }} />
+                      <div className="w-full h-full relative bg-black">
+                        {/* The base video provides the motion and texture */}
+                        <video src={result.url} className="w-full h-full object-cover opacity-50" autoPlay loop muted />
+
                         {result.original && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="absolute inset-0 pointer-events-none">
+                             {/* The user image is "Neural Mapped" onto the video's light/motion */}
                              <img
                                 src={result.original}
-                                className="w-full h-full object-cover opacity-40 mix-blend-screen"
+                                className="w-full h-full object-cover mix-blend-hard-light animate-neural-drift"
                                 alt="Mimick Overlay"
-                                style={{ filter: 'grayscale(1) brightness(1.5)' }}
+                                style={{
+                                  filter: `${result.filter}`,
+                                }}
                              />
+                             <div className="absolute inset-0 bg-primary-blue/5 animate-neural-warp pointer-events-none mix-blend-overlay" />
+
+                             {/* Neural Mesh Overlay Effect */}
+                             <div className="absolute inset-0 opacity-20 pointer-events-none">
+                               <svg width="100%" height="100%" className="animate-pulse">
+                                 <pattern id="neural-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                   <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-primary-blue" />
+                                 </pattern>
+                                 <rect width="100%" height="100%" fill="url(#neural-grid)" />
+                               </svg>
+                             </div>
                           </div>
                         )}
+
+                        {/* Scanning Line */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                          <div className="w-full h-1 bg-primary-blue/30 shadow-[0_0_15px_rgba(80,85,251,0.5)] animate-scan-y" />
+                        </div>
                       </div>
                     ) : (
-                      <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
+                      <div className="w-full h-full relative">
+                        <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
+                        {/* Scanning Line for Avatar */}
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
+                          <div className="w-full h-0.5 bg-primary-blue/20 animate-scan-y" />
+                        </div>
+                      </div>
                     )}
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-primary-blue/80 rounded text-[8px] font-bold uppercase tracking-widest">Result</div>
+                    {result.type === 'video' && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-indigo-600/90 px-2 py-0.5 rounded-full shadow-lg border border-white/20">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                        <span className="text-[7px] font-black text-white tracking-tighter">NEURAL MAPPING DETECTED</span>
+                      </div>
+                    )}
                     {result.label && (
                       <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">{result.label}</div>
                     )}
@@ -109,15 +143,30 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
               ) : (
                 <div className="aspect-square relative overflow-hidden">
                   {result.type === 'video' ? (
-                    <div className="w-full h-full relative">
-                      <video src={result.url} className="w-full h-full object-cover" controls style={{ filter: result.filter }} />
+                    <div className="w-full h-full relative bg-black">
+                      <video src={result.url} className="w-full h-full object-cover opacity-40" controls />
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-indigo-600/90 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                        <span className="text-[7px] font-black text-white tracking-tighter">NEURAL MAPPING DETECTED</span>
+                      </div>
                       {result.original && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
                             <img
                               src={result.original}
-                              className="w-full h-full object-cover opacity-30 mix-blend-overlay"
+                              className="w-full h-full object-cover mix-blend-hard-light animate-neural-drift"
                               alt="Mimick Overlay"
+                              style={{ filter: result.filter }}
                             />
+                            <div className="absolute inset-0 bg-primary-blue/5 animate-neural-warp pointer-events-none mix-blend-overlay" />
+                            {/* Neural Mesh Overlay */}
+                             <div className="absolute inset-0 opacity-10">
+                               <svg width="100%" height="100%">
+                                 <pattern id="neural-grid-static" width="30" height="30" patternUnits="userSpaceOnUse">
+                                   <circle cx="2" cy="2" r="1" className="fill-primary-blue" />
+                                 </pattern>
+                                 <rect width="100%" height="100%" fill="url(#neural-grid-static)" />
+                               </svg>
+                             </div>
                         </div>
                       )}
                     </div>
