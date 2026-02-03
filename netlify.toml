@@ -1,14 +1,3 @@
 [build]
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
-
-[functions]
-  directory = "backend"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/main"
-  status = 200
-
-[functions."main"]
-  runtime = "python"

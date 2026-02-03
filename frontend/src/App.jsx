@@ -64,63 +64,54 @@ function App() {
   };
 
   const handleGenerate = async () => {
+    if ((mode === 'video' && (!videoImage || !videoFile)) || (mode === 'avatar' && !avatarImage)) {
+      alert('Please upload all required media before generating.');
+      return;
+    }
+
     setLoading(true);
     const progressInterval = simulateProgress();
 
-    try {
-      const formData = new FormData();
-      const apiBase = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : '');
-      let endpoint = '';
+    // Simulate AI processing time
+    const waitTime = mode === 'video' ? 4000 : 3000;
 
-      if (mode === 'video') {
-        formData.append('image', videoImage);
-        formData.append('video', videoFile);
-        formData.append('prompt', videoPrompt);
-        endpoint = `${apiBase}/api/video-replication`;
-      } else {
-        formData.append('image', avatarImage);
-        formData.append('style', avatarStyle);
-        formData.append('prompt', avatarPrompt);
-        formData.append('resolution', resolution);
-        formData.append('options', JSON.stringify(avatarOptions));
-        endpoint = `${apiBase}/api/avatar-creation`;
-      }
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('Generation failed');
-
-      const data = await response.json();
-
+    setTimeout(() => {
       clearInterval(progressInterval);
       setProgress(100);
 
-      setTimeout(() => {
-        const newResults = mode === 'video'
-          ? [{ id: data.id, url: data.output_url, type: 'video', original: URL.createObjectURL(videoImage) }]
-          : data.variations.map((v, i) => ({
-              id: `${data.id}-${i}`,
-              url: v,
-              type: 'avatar',
-              original: URL.createObjectURL(avatarImage)
-            }));
+      const requestId = Math.random().toString(36).substring(7);
+      let newResults = [];
 
-        setResults(newResults);
-        saveToHistory(newResults);
-        setLoading(false);
-        setProgress(0);
-        if (window.innerWidth < 1280) setShowResultsMobile(true);
-      }, 500);
+      if (mode === 'video') {
+        newResults = [{
+          id: requestId,
+          url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+          type: 'video',
+          original: URL.createObjectURL(videoImage)
+        }];
+      } else {
+        const variations = [
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400",
+          "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400",
+          "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&q=80&w=400",
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400"
+        ];
 
-    } catch (error) {
-      console.error(error);
-      clearInterval(progressInterval);
+        const count = avatarOptions.batch ? 4 : 1;
+        newResults = variations.slice(0, count).map((v, i) => ({
+          id: `${requestId}-${i}`,
+          url: v,
+          type: 'avatar',
+          original: URL.createObjectURL(avatarImage)
+        }));
+      }
+
+      setResults(newResults);
+      saveToHistory(newResults);
       setLoading(false);
-      alert('Error generating content. Make sure the backend is running.');
-    }
+      setProgress(0);
+      if (window.innerWidth < 1280) setShowResultsMobile(true);
+    }, waitTime);
   };
 
   return (
