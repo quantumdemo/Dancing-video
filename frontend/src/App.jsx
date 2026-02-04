@@ -58,22 +58,40 @@ function App() {
   });
 
   useEffect(() => {
-    const savedHistory = localStorage.getItem('ai_studio_history');
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
-  }, []);
+    const fetchHistory = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_BASE_URL}/history`);
+        if (response.ok) {
+          const data = await response.json();
+          // Transform backend model to frontend expected format
+          const transformed = data.map(item => ({
+            id: item.request_id,
+            url: `${API_BASE_URL}${item.output_urls[0]}`, // Primary output
+            type: item.type,
+            prompt: item.prompt,
+            created_at: item.created_at,
+            label: item.style || (item.type === 'video' ? 'Video Replication' : 'Avatar')
+          }));
+          setHistory(transformed);
+        }
+      } catch (err) {
+        console.warn('Could not fetch history from database, falling back to local storage');
+        const savedHistory = localStorage.getItem('ai_studio_history');
+        if (savedHistory) setHistory(JSON.parse(savedHistory));
+      }
+    };
+    fetchHistory();
+  }, [results]); // Refresh history when new results arrive
 
   const saveToHistory = (newResults) => {
     setHistory(prev => {
       const updated = [...newResults, ...prev].slice(0, 20);
       return updated;
     });
+    // Still save to local storage for offline support
+    localStorage.setItem('ai_studio_history', JSON.stringify([...newResults, ...history].slice(0, 20)));
   };
-
-  useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem('ai_studio_history', JSON.stringify(history));
-    }
-  }, [history]);
 
   const simulateProgress = () => {
     setProgress(0);

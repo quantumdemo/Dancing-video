@@ -6,12 +6,17 @@ import numpy as np
 import mediapipe as mp
 import requests
 from moviepy import VideoFileClip, ImageSequenceClip
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+import models, database
 
 app = FastAPI()
+
+# Create database tables
+models.Base.metadata.create_all(bind=database.engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,24 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "uploads"
-OUTPUT_DIR = "outputs"
-MODELS_DIR = "models"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", "outputs")
+MODELS_DIR = os.getenv("MODELS_DIR", "models")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 
 app.mount("/outputs", StaticFiles(directory=OUTPUT_DIR), name="outputs")
-
-# Helper to download models
-def download_model(url, filename):
-    path = os.path.join(MODELS_DIR, filename)
-    if not os.path.exists(path):
-        print(f"Downloading {filename}...")
-        r = requests.get(url, allow_redirects=True)
-        with open(path, 'wb') as f:
-            f.write(r.content)
-    return path
 
 # MediaPipe Solutions (Legacy API is more stable for this use case in certain envs)
 mp_face_mesh = mp.solutions.face_mesh
@@ -90,11 +85,17 @@ def warp_face(identity_img, identity_landmarks, target_img, target_landmarks):
 async def root():
     return {"message": "AI Media Studio API", "status": "online"}
 
+@app.get("/history")
+async def get_history(db: Session = Depends(database.get_db)):
+    history = db.query(models.Generation).order_by(models.Generation.created_at.desc()).limit(20).all()
+    return history
+
 @app.post("/process-video")
 async def process_video(
     identity_image: UploadFile = File(...),
     motion_video: UploadFile = File(...),
-    prompt: str = Form(...)
+    prompt: str = Form(...),
+    db: Session = Depends(database.get_db)
 ):
     request_id = str(uuid.uuid4())
     img_path = os.path.join(UPLOAD_DIR, f"{request_id}_id.png")
@@ -131,6 +132,17 @@ async def process_video(
 
     clip.close()
     out_clip.close()
+
+    # Save to DB
+    db_gen = models.Generation(
+        request_id=request_id,
+        type="video",
+        prompt=prompt,
+        output_urls=[f"/outputs/{request_id}_out.mp4"]
+    )
+    db.add(db_gen)
+    db.commit()
+
     return {"id": request_id, "output_url": f"/outputs/{request_id}_out.mp4"}
 
 def apply_generative_style(img, style, prompt):
@@ -160,7 +172,8 @@ async def create_avatar(
     prompt: str = Form(...),
     resolution: str = Form("512x512"),
     variations: int = Form(4),
-    remove_bg: bool = Form(False)
+    remove_bg: bool = Form(False),
+    db: Session = Depends(database.get_db)
 ):
     request_id = str(uuid.uuid4())
     img_path = os.path.join(UPLOAD_DIR, f"{request_id}_av.png")
@@ -189,6 +202,17 @@ async def create_avatar(
         else:
             cv2.imwrite(out_path, stylized)
         outputs.append(f"/outputs/{out_name}")
+
+    # Save to DB
+    db_gen = models.Generation(
+        request_id=request_id,
+        type="avatar",
+        prompt=prompt,
+        style=style,
+        output_urls=outputs
+    )
+    db.add(db_gen)
+    db.commit()
 
     return {"id": request_id, "outputs": outputs}
 

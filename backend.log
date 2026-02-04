@@ -1,7 +1,0 @@
-INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
-INFO:     Started server process [51901]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:42782 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:42796 - "POST /create-avatar HTTP/1.1" 200 OK
