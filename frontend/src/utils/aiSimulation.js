@@ -1,58 +1,70 @@
-export const simulateAIProcessing = (mode, data) => {
-  const requestId = Math.random().toString(36).substring(7);
-  let newResults = [];
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-  if (mode === 'video') {
-    const { videoFile, videoPrompt, videoImagesPreviews } = data;
-    const videoUrl = URL.createObjectURL(videoFile);
-    let dynamicFilter = 'contrast(1.2) saturate(1.4)';
+export const simulateAIProcessing = async (mode, data) => {
+  try {
+    if (mode === 'video') {
+      const { videoFile, videoPrompt, videoImages } = data;
 
-    const p = videoPrompt.toLowerCase();
-    if (p.includes('neon') || p.includes('cyber')) dynamicFilter += ' hue-rotate(280deg) brightness(1.2)';
-    else if (p.includes('old') || p.includes('retro')) dynamicFilter += ' sepia(0.5) contrast(0.8)';
-    else if (p.includes('dark')) dynamicFilter += ' brightness(0.7) contrast(1.5)';
-    else dynamicFilter += ' hue-rotate(200deg)';
+      const formData = new FormData();
+      formData.append('identity_image', videoImages[0]);
+      formData.append('motion_video', videoFile);
+      formData.append('prompt', videoPrompt);
 
-    newResults = [{
-      id: requestId,
-      url: videoUrl,
-      type: 'video',
-      original: videoImagesPreviews[0] || null,
-      filter: dynamicFilter,
-      label: 'Motion Sync',
-      isMotionMap: true
-    }];
-  } else {
-    const { avatarImagePreview, avatarStyle, avatarOptions } = data;
-    const imageUrl = avatarImagePreview;
-    const styleMap = {
-      'anime': { filter: 'contrast(1.1) saturate(1.3) brightness(1.1) sepia(0.1)', label: 'Anime' },
-      '3d-pixar': { filter: 'saturate(1.8) brightness(1.1) blur(0.4px)', label: '3D Pixar' },
-      'cyberpunk': { filter: 'hue-rotate(280deg) contrast(1.2) saturate(1.5) brightness(1.1)', label: 'Cyberpunk' },
-      'watercolor': { filter: 'opacity(0.8) contrast(0.8) sepia(0.3) saturate(1.2) blur(0.2px)', label: 'Watercolor' },
-      'professional-logo': { filter: 'contrast(1.8) brightness(1.2) grayscale(1)', label: 'Minimalist Logo' },
-      'gaming-character': { filter: 'contrast(1.5) brightness(0.9) saturate(1.5) hue-rotate(10deg)', label: 'Gaming' }
-    };
+      const response = await fetch(`${API_BASE_URL}/process-video`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    const selectedStyleData = styleMap[avatarStyle] || styleMap['cyberpunk'];
-    const count = avatarOptions.batch ? 4 : 1;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process video');
+      }
 
-    newResults = Array.from({ length: count }).map((_, i) => {
-      const hueShift = i * 15;
-      const currentFilter = i === 0
-        ? selectedStyleData.filter
-        : `${selectedStyleData.filter} hue-rotate(${hueShift}deg)`;
+      const result = await response.json();
 
-      return {
-        id: `${requestId}-${i}`,
-        url: imageUrl,
+      return [{
+        id: result.id,
+        url: `${API_BASE_URL}${result.output_url}`,
+        type: 'video',
+        original: URL.createObjectURL(videoImages[0]),
+        filter: 'none',
+        label: 'AI Motion Replication',
+        isMotionMap: false
+      }];
+    } else {
+      const { avatarImage, avatarStyle, avatarPrompt, avatarOptions, resolution } = data;
+
+      const formData = new FormData();
+      formData.append('image', avatarImage);
+      formData.append('style', avatarStyle);
+      formData.append('prompt', avatarPrompt);
+      formData.append('resolution', resolution);
+      formData.append('variations', avatarOptions.batch ? 4 : 1);
+      formData.append('remove_bg', avatarOptions.removeBg);
+
+      const response = await fetch(`${API_BASE_URL}/create-avatar`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create avatar');
+      }
+
+      const result = await response.json();
+
+      return result.outputs.map((url, i) => ({
+        id: `${result.id}-${i}`,
+        url: `${API_BASE_URL}${url}`,
         type: 'avatar',
-        original: imageUrl,
-        filter: currentFilter,
-        label: `${selectedStyleData.label}${i > 0 ? ` Var ${i+1}` : ''}`
-      };
-    });
+        original: URL.createObjectURL(avatarImage),
+        filter: 'none',
+        label: `${avatarStyle}${i > 0 ? ` Var ${i+1}` : ''}`
+      }));
+    }
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
   }
-
-  return newResults;
 };

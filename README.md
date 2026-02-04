@@ -1,55 +1,43 @@
 # AI Media Studio
 
-A single-page web application for AI-powered video style replication and avatar creation.
+AI-powered single-page application for video identity replacement and custom avatar creation.
 
 ## Features
-
-- **Video Style Replication**: Transform images based on video motion and style.
-- **Avatar Creator**: Create personalized avatars with multiple styles and batch processing.
-- **Responsive UI**: High-performance interface optimized for desktop and mobile.
-- **Side-by-Side Comparison**: Compare generated results with original uploads.
-- **Privacy Focused**: Real-time processing with local history storage.
+- **Video Style Transfer**: Replace a person's identity in a video with a reference image.
+- **Avatar Creator**: Generate stylized avatars with background removal and text prompts.
 
 ## Tech Stack
+- **Frontend**: React, Vite, Tailwind CSS, Lucide Icons.
+- **Backend**: Python, FastAPI, MediaPipe (AI Vision), OpenCV, MoviePy.
 
-- **Frontend**: React, Vite, Tailwind CSS, Lucide Icons, Framer Motion.
-- **Deployment**: Netlify (Static Hosting).
+## Getting Started
 
-## Local Development
+### Backend Setup
+1. Navigate to the `backend` directory.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Run the server:
+   ```bash
+   python main.py
+   ```
+   The backend will start on `http://localhost:8000`.
 
-### Prerequisites
-- Node.js & npm
+### Frontend Setup
+1. Navigate to the `frontend` directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-### Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The app will be available at `http://localhost:5173`.
+## Deployment
+- **Frontend**: Deployable on Netlify. Ensure the API URL in `frontend/src/utils/aiSimulation.js` is updated to your hosted backend.
+- **Backend**: Requires a Python environment with GPU support recommended for production-grade AI models (e.g., AWS EC2, Render with Docker, or Heroku with a custom buildpack).
 
-## How it Works (Style Simulation)
-
-This application is a **Visual Prototype**. It simulates complex AI video style replication and avatar creation using client-side processing (CSS Filters and Canvas).
-
-- **Video Style Replication**: Analyzes the uploaded video and applies dynamic CSS style filters based on your prompt (e.g., "cyberpunk", "retro", "dark").
-- **Avatar Creator**: Generates variations of your uploaded portrait by applying curated filter stacks corresponding to styles like Anime, 3D Pixar, and Watercolor.
-- **Why Simulation?**: High-quality AI video generation requires multi-gigabyte models and high-end GPUs. This prototype provides a high-performance, cost-free demonstration of the **User Experience (UX)** and **Interface Logic** without requiring expensive cloud infrastructure.
-
-## Deployment (Free)
-
-This project is pre-configured for **Netlify** as a pure frontend application.
-
-1. **Push to GitHub**: Upload your code to a GitHub repository.
-2. **Connect to Netlify**:
-   - Sign up/Login to [Netlify](https://www.netlify.com/).
-   - Click "Add new site" > "Import from existing project".
-   - Select your GitHub repo.
-3. **Automatic Configuration**:
-   - Netlify will read the `netlify.toml` file in the root.
-   - It will automatically set:
-     - **Build Command**: `cd frontend && npm install && npm run build`
-     - **Publish Directory**: `frontend/dist`
-
-### Why Netlify?
-- **Static Hosting**: Free forever for personal projects. This prototype runs entirely in the browser, simulating the AI generation process for demonstration purposes.
+## Note on AI Models
+This implementation uses MediaPipe for high-performance CPU-based face tracking and background segmentation. Production deployments for high-fidelity generative AI should integrate `diffusers` with Stable Diffusion LoRAs in the backend `apply_generative_style` function.

@@ -86,53 +86,20 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                   <div className="aspect-square relative overflow-hidden">
                     {result.type === 'video' ? (
                       <div className="w-full h-full relative bg-black">
-                        {/* The base video is treated as a "Motion Map" */}
                         <video
                           src={result.url}
-                          className="w-full h-full object-cover opacity-30"
+                          className="w-full h-full object-cover"
                           autoPlay loop muted
-                          style={{ filter: 'contrast(2) brightness(0.5) saturate(0) blur(2px)' }}
                         />
 
-                        {result.original && (
-                          <div className="absolute inset-0 pointer-events-none">
-                             {/* Identity Source fully replaces the subject */}
-                             <img
-                                src={result.original}
-                                className="w-full h-full object-cover animate-neural-drift"
-                                alt="Mimick Overlay"
-                                style={{
-                                  filter: `${result.filter}`,
-                                  mixBlendMode: 'screen'
-                                }}
-                             />
-                             <div className="absolute inset-0 bg-primary-blue/10 animate-neural-warp pointer-events-none mix-blend-overlay" />
-
-                             {/* Neural Mesh Overlay Effect to simulate 3D mapping */}
-                             <div className="absolute inset-0 opacity-30 pointer-events-none">
-                               <svg width="100%" height="100%" className="animate-pulse">
-                                 <pattern id="neural-grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                                   <circle cx="2" cy="2" r="1" className="fill-primary-blue" />
-                                   <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.2" className="text-primary-blue" />
-                                 </pattern>
-                                 <rect width="100%" height="100%" fill="url(#neural-grid)" />
-                               </svg>
-                             </div>
-                          </div>
-                        )}
-
-                        {/* Scanning Line */}
+                        {/* Techy Scan Overlay */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                          <div className="w-full h-1 bg-primary-blue/30 shadow-[0_0_15px_rgba(80,85,251,0.5)] animate-scan-y" />
+                          <div className="w-full h-1 bg-primary-blue/20 shadow-[0_0_15px_rgba(80,85,251,0.2)] animate-scan-y" />
                         </div>
                       </div>
                     ) : (
                       <div className="w-full h-full relative">
-                        <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
-                        {/* Scanning Line for Avatar */}
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
-                          <div className="w-full h-0.5 bg-primary-blue/20 animate-scan-y" />
-                        </div>
+                        <img src={result.url} alt="Result" className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-primary-blue/80 rounded text-[8px] font-bold uppercase tracking-widest">Result</div>
@@ -153,41 +120,16 @@ const ResultsPanel = ({ results, loading, progress, isOpen, onClose }) => {
                     <div className="w-full h-full relative bg-black">
                       <video
                         src={result.url}
-                        className="w-full h-full object-cover opacity-20"
+                        className="w-full h-full object-cover"
                         controls
-                        style={{ filter: 'grayscale(1) contrast(3)' }}
                       />
-                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-indigo-600/90 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-primary-blue/90 px-2 py-0.5 rounded-full shadow-lg border border-white/20 z-20">
                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-                        <span className="text-[7px] font-black text-white tracking-tighter">NEURAL IDENTITY REPLACEMENT</span>
+                        <span className="text-[7px] font-black text-white tracking-tighter uppercase">AI Output Generated</span>
                       </div>
-                      {result.original && (
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            <img
-                              src={result.original}
-                              className="w-full h-full object-cover animate-neural-drift"
-                              alt="Mimick Overlay"
-                              style={{
-                                filter: result.filter,
-                                mixBlendMode: 'screen'
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-primary-blue/5 animate-neural-warp pointer-events-none mix-blend-overlay" />
-                            {/* Neural Mesh Overlay */}
-                             <div className="absolute inset-0 opacity-20">
-                               <svg width="100%" height="100%">
-                                 <pattern id="neural-grid-static" width="30" height="30" patternUnits="userSpaceOnUse">
-                                   <circle cx="2" cy="2" r="1" className="fill-primary-blue" />
-                                   <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="0.1" className="text-primary-blue" />
-                                 </pattern>
-                                 <rect width="100%" height="100%" fill="url(#neural-grid-static)" />
-                               </svg>
-                             </div>
-                        </div>
-                      )}
                     </div>
                   ) : (
-                    <img src={result.url} alt="Result" className="w-full h-full object-cover" style={{ filter: result.filter }} />
+                    <img src={result.url} alt="Result" className="w-full h-full object-cover" />
                   )}
                   {result.label && (
                     <div className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/60 rounded text-[8px] font-bold uppercase tracking-widest">{result.label}</div>

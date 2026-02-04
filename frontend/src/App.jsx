@@ -96,32 +96,34 @@ function App() {
     }
 
     setLoading(true);
-    setShowResultsMobile(true); // Open panel immediately
+    setShowResultsMobile(true);
     const progressInterval = simulateProgress();
 
-    // Simulate AI processing time
-    const waitTime = mode === 'video' ? 4000 : 3000;
-
-    setTimeout(() => {
-      clearInterval(progressInterval);
-      setProgress(100);
-
-      const newResults = simulateAIProcessing(mode, {
+    try {
+      const newResults = await simulateAIProcessing(mode, {
         videoFile,
         videoPrompt,
-        videoImagesPreviews,
-        avatarImagePreview,
+        videoImages,
+        avatarImage,
         avatarStyle,
-        avatarOptions
+        avatarPrompt,
+        avatarOptions,
+        resolution
       });
 
+      clearInterval(progressInterval);
+      setProgress(100);
       setResults(newResults);
       saveToHistory(newResults);
       setLoading(false);
+      // Wait a bit before clearing progress bar for visual feedback
+      setTimeout(() => setProgress(0), 1000);
+    } catch (error) {
+      clearInterval(progressInterval);
       setProgress(0);
-      // Ensure the results are shown
-      setShowResultsMobile(true);
-    }, waitTime);
+      setLoading(false);
+      alert(`Processing Error: ${error.message}`);
+    }
   };
 
   return (
